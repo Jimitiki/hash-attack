@@ -68,14 +68,14 @@ void print_bits(byte *bytes, int bit_count)
 	for (byte_counter = 0; byte_counter < byte_count; byte_counter++)
 	{
 		cur_byte = bytes[byte_counter];
-		if (byte_counter == byte_count - 1)
-		{
-			num_bits = extra_bits;
-		}
-		else
-		{
+		// if (byte_counter == byte_count - 1)
+		// {
+		// 	num_bits = extra_bits;
+		// }
+		// else
+		// {
 			num_bits = 8;
-		}
+		// }
 		for (bit_counter = 0; bit_counter < num_bits; bit_counter++)
 		{
 			printf("%d", cur_byte & 0x01);

@@ -17,9 +17,15 @@ void sha1(unsigned char *input, unsigned char *output, int input_length, int out
 int collision_attack(int digest_length);
 int preimage_attack(unsigned char *digest, int digest_length);
 int byte_set_insert(unsigned char *bytes, int byte_count, byte_set *set);
+void output_byte_set(byte_set *set, char *file_name, int byte_count);
 
-const int NUM_TESTS = 50;
+const int NUM_TESTS = 20;
 const int INPUT_LENGTH = 80;
+
+char *FILE_NAMES[6] =
+{
+	"8bits.csv", "11bits.csv", "14bits.csv", "17bits.csv", "20bits.csv", "23bits.csv"
+};
 
 int main(int argc, char **argv)
 {
@@ -82,10 +88,15 @@ int collision_attack(int digest_length)
 		attempt_count++;
 		generate_random_bytes(input, input_length);
 		sha1(input, digest, input_length, digest_length);
+		// printf("DIGEST: ");
+		// print_bits(digest, byte_count * 8);
+		// printf("\n");
 	} while (byte_set_insert(input, byte_count, &digests) && attempt_count < pow(2, input_length));
 
 	printf("%d\n", attempt_count);
 	// printf("COLLISION ATTACK SUCCEEDED. %d ATTEMPTS\n", attempt_count);
+
+	output_byte_set(&digests, FILE_NAMES[(digest_length - 8) / 3], byte_count);
 
 	for (int i = 0; i < digests.length; i++)
 	{
@@ -134,6 +145,9 @@ void sha1(unsigned char *input, unsigned char *output, int input_length, int out
 	{
 		byte_count++;
 		mask = 255 << (8 - output_length % 8);
+		// printf("mask: ");
+		// print_bits(&mask, 8);
+		// printf("\n");
 	}
 
 	unsigned char digest[20];
@@ -148,13 +162,18 @@ int byte_set_insert(byte *bytes, int byte_count, byte_set *set)
 	byte *bytes_copy = calloc(byte_count, 1);
 	memcpy(bytes_copy, bytes, byte_count);
 	int bytes_index = 0;
-	while (bytes_index < set->length && memcmp(bytes_copy, set->bytes[bytes_index], byte_count))
+	while (bytes_index < set->length)
 	{
+		if (memcmp(bytes_copy, set->bytes[bytes_index], byte_count) == 0)
+		{
+			printf("\nDUPLICATE FOUND: ");
+			print_bytes(bytes_copy, byte_count);
+			printf("\n");
+			print_bits(bytes_copy, byte_count * 8);
+			printf("\n");
+			return 0;
+		}
 		bytes_index++;
-	}
-	if (bytes_index != set->length)
-	{
-		return 0;
 	}
 	set->length++;
 	if (set->length > set->capacity)
@@ -169,8 +188,19 @@ int byte_set_insert(byte *bytes, int byte_count, byte_set *set)
 	return 1;
 }
 
-int output_byte_set(byte_set *set, char *file_name)
+void output_byte_set(byte_set *set, char *file_name, int byte_count)
 {
-	FILE f;
-	("", "w")
+	FILE *f = fopen(file_name, "w");
+	int i;
+	int j;
+	for (i = 0; i < set->length; i++)
+	{
+		fprintf(f, "0x");
+		for (j = 0; j < byte_count; j++)
+		{
+			fprintf(f, "%02X", set->bytes[i][j]);
+		}
+		fprintf(f, "\n");
+	}
+	fclose(f);
 }
